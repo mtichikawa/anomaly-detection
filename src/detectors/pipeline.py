@@ -79,8 +79,8 @@ class StatisticalDetector(BaseDetector):
     Statistical detector using z-scores and moving averages
     '''
     
-    def __init__(self, threshold: float = 3.0, window_size: int = 50):
-        super().__init__('Statistical')
+    def __init__(self, threshold: float = 3.0, window_size: int = 50, name: str = 'Statistical'):
+        super().__init__(name)
         self.threshold = threshold
         self.window_size = window_size
         self.window = deque(maxlen=window_size)
