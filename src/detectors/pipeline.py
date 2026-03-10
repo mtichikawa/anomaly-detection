@@ -184,8 +184,8 @@ class EnsembleDetector:
         self.voting_threshold = voting_threshold
         self.detectors = [
             IsolationForestDetector(contamination=0.1),
-            StatisticalDetector(threshold=3.0),
-            StatisticalDetector(threshold=2.5),  # More sensitive
+            StatisticalDetector(threshold=3.0, name='Statistical_strict'),
+            StatisticalDetector(threshold=2.5, name='Statistical_sensitive'),
             LSTMAutoencoder(sequence_length=10)
         ]
         
