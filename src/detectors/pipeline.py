@@ -338,10 +338,7 @@ class StreamingPipeline:
             json.dump({
                 'detector_type': self.detector_type,
                 'anomalies': self.anomalies,
-                'statistics': self._calculate_stats([
-                    {'score': s, 'is_anomaly': a['is_anomaly']} 
-                    for s, a in zip(self.all_scores, self.anomalies)
-                ] if self.anomalies else [])
+                'statistics': self._calculate_stats(self.anomalies if self.anomalies else [])
             }, f, indent=2)
             
         print(f'  ✅ Saved results to {filepath}')
