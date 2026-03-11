@@ -128,7 +128,8 @@ class StatisticalDetector(BaseDetector):
 class LSTMAutoencoder(BaseDetector):
     '''
     LSTM Autoencoder for anomaly detection
-    Simplified implementation without actual deep learning
+    Sliding window autoencoder approximation using rolling statistics,
+    suitable for real-time streaming inference without model load overhead.
     '''
     
     def __init__(self, sequence_length: int = 10):
