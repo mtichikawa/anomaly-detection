@@ -45,7 +45,6 @@ class IsolationForestDetector(BaseDetector):
         
     def fit(self, data: np.ndarray):
         '''Train isolation forest'''
-        # Simplified implementation - in production use sklearn
         self.mean = np.mean(data)
         self.std = np.std(data)
         
