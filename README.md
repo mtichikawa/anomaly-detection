@@ -1,6 +1,6 @@
 # Real-Time Anomaly Detection System
 
-Production-ready streaming anomaly detection with multiple ML algorithms and ensemble voting.
+Production-ready streaming anomaly detection with multiple ML algorithms and ensemble voting, now also available as a containerized REST API.
 
 ## Features
 
@@ -43,6 +43,34 @@ results = pipeline.process_stream(test_data)
 for anomaly in pipeline.anomalies:
     print(f"Anomaly at {anomaly['index']}: {anomaly['value']}")
 ```
+
+## REST API (Dockerized)
+
+The detection system is also available as a containerized FastAPI service for real-time anomaly detection over HTTP.
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | Service health, detector status, uptime |
+| `POST` | `/detect` | Submit a single observation for anomaly detection |
+| `GET` | `/docs` | Swagger UI (auto-generated) |
+
+### Running with Docker
+
+```bash
+docker-compose up --build
+```
+
+The API starts on `http://localhost:8000`. Hit `/health` to confirm detectors are loaded, then POST observations to `/detect`:
+
+```bash
+curl -X POST http://localhost:8000/detect \
+  -H "Content-Type: application/json" \
+  -d '{"value": 42.5}'
+```
+
+The `/detect` endpoint returns the ensemble vote (anomaly or normal), individual detector results, and a confidence score. Detector selection is configurable at startup.
 
 ## Code Structure
 
