@@ -50,6 +50,7 @@ class IsolationForestDetector(BaseDetector):
         
         # Set threshold based on contamination rate
         sorted_data = np.sort(data)
+        # threshold: absolute deviation at the (1-contamination) percentile; values beyond are flagged
         cutoff_idx = int(len(sorted_data) * (1 - self.contamination))
         self.threshold = abs(sorted_data[cutoff_idx] - self.mean)
         
