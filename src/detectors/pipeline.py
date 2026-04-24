@@ -218,6 +218,7 @@ class EnsembleDetector:
             }
             
         vote_fraction = sum(votes) / len(votes)
+        # raise voting_threshold for higher precision; lower for higher recall
         is_anomaly = vote_fraction >= self.voting_threshold
         
         return is_anomaly, {
