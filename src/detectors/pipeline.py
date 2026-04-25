@@ -145,7 +145,7 @@ class LSTMAutoencoder(BaseDetector):
         self.std = np.std(data)
         
         # Set threshold for reconstruction error
-        self.reconstruction_threshold = self.std * 2
+        self.reconstruction_threshold = self.std * 2  # 2-sigma heuristic; tune per domain noise floor
         self.trained = True
         
     def predict(self, value: float) -> bool:
