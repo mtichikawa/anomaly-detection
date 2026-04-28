@@ -12,6 +12,7 @@ class AnomalyVisualizer:
     '''Create visualizations for anomaly detection results'''
     
     def __init__(self, output_dir: str = 'assets'):
+        # output_dir is created on init if absent; override for test isolation
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         
