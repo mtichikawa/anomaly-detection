@@ -269,7 +269,7 @@ class StreamingPipeline:
             
         print('  ✅ Training complete')
         
-    def process_stream(self, data_stream: np.ndarray, timestamps: Optional[List] = None) -> Dict:
+    def process_stream(self, data_stream: np.ndarray, timestamps: Optional[List] = None) -> Dict:  # keys: results, anomalies, stats
         '''
         Process streaming data and detect anomalies
         
