@@ -1,0 +1,69 @@
+{
+  "model_path": "models/lightgbm_anomaly.pkl",
+  "training_config": {
+    "n_points": 5000,
+    "anomaly_rate": 0.05,
+    "window": 10,
+    "train_fraction": 0.8,
+    "split_kind": "chronological",
+    "random_seed": 42
+  },
+  "test_metrics": {
+    "accuracy": 0.998997995991984,
+    "precision": 1.0,
+    "recall": 0.9736842105263158,
+    "f1": 0.9866666666666666,
+    "auc": 0.9999725877192981,
+    "test_anomaly_rate": 0.03807615230460922,
+    "test_size": 998
+  },
+  "permutation_importance": {
+    "value": {
+      "mean": 0.0,
+      "std": 0.0
+    },
+    "rolling_mean": {
+      "mean": 0.0,
+      "std": 0.0
+    },
+    "rolling_std": {
+      "mean": 0.0,
+      "std": 0.0
+    },
+    "rolling_min": {
+      "mean": 0.0,
+      "std": 0.0
+    },
+    "rolling_max": {
+      "mean": 0.0,
+      "std": 0.0
+    },
+    "z_score": {
+      "mean": 0.024148296593186423,
+      "std": 0.0027054108216432943
+    },
+    "diff_prev": {
+      "mean": 0.007715430861723482,
+      "std": 0.002197566352651437
+    },
+    "ratio_to_mean": {
+      "mean": 0.020140280561122305,
+      "std": 0.002075382282285388
+    },
+    "range_pct": {
+      "mean": 0.0,
+      "std": 0.0
+    }
+  },
+  "feature_names": [
+    "value",
+    "rolling_mean",
+    "rolling_std",
+    "rolling_min",
+    "rolling_max",
+    "z_score",
+    "diff_prev",
+    "ratio_to_mean",
+    "range_pct"
+  ]
+}
