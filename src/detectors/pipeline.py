@@ -189,6 +189,21 @@ class EnsembleDetector:
             StatisticalDetector(threshold=2.5, name='Statistical_sensitive'),
             LSTMAutoencoder(sequence_length=10)
         ]
+
+        # Optional 5th member: supervised LightGBM detector. Loads if a
+        # trained model file exists (run scripts/train_lightgbm.py once
+        # to produce it). If absent, the ensemble degrades gracefully
+        # to the 4 unsupervised detectors above.
+        try:
+            from .lightgbm_detector import LightGBMDetector, DEFAULT_MODEL_PATH
+            if DEFAULT_MODEL_PATH.exists():
+                lgbm = LightGBMDetector()
+                if lgbm.trained:
+                    self.detectors.append(lgbm)
+        except Exception:
+            # Any import or load failure: silently skip the LightGBM detector.
+            # The graceful-degradation contract: ensemble works without it.
+            pass
         
     def fit(self, data: np.ndarray):
         '''Train all detectors'''
