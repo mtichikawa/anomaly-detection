@@ -167,3 +167,5 @@ Contact: Mike Ichikawa - projects.ichikawa@gmail.com
 # 2026-02-17
 # 2026-02-18
 <!-- reviewed 2026-03-07 -->
+
+> _Note: ensemble votes use a strict 2/3 majority by default. Lowering the threshold increases recall at the cost of precision — tune to the cost asymmetry of false positives vs missed anomalies in your domain._
