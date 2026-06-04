@@ -10,6 +10,7 @@ import pytest
 from pathlib import Path
 
 from detectors.pipeline import (
+from typing import Any
     IsolationForestDetector,
     StatisticalDetector,
     LSTMAutoencoder,
@@ -117,7 +118,7 @@ def test_isolation_forest_score_before_fit_returns_zero():
     assert det.get_score(999.0) == 0.0
 
 
-def test_isolation_forest_fit_marks_trained(normal_data):
+def test_isolation_forest_fit_marks_trained(normal_data: Any):
     det = IsolationForestDetector()
     det.fit(normal_data)
     assert det.trained is True
