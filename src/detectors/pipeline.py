@@ -9,6 +9,8 @@ from typing import List, Dict, Tuple, Optional
 import json
 from pathlib import Path
 
+from .drift_detector import DriftDetector
+
 
 class BaseDetector:
     '''Base class for all detectors'''
@@ -253,13 +255,18 @@ class StreamingPipeline:
     Complete streaming anomaly detection pipeline
     '''
     
-    def __init__(self, detector_type: str = 'ensemble'):
+    def __init__(self, detector_type: str = 'ensemble',
+                 drift_detector: Optional[DriftDetector] = None):
         '''
         Args:
             detector_type: 'isolation', 'statistical', 'lstm', or 'ensemble'
+            drift_detector: optional DriftDetector. When supplied, every
+                point is also fed to it; concept-drift hits are emitted as
+                'drift_alert' events, kept separate from point-anomaly
+                alerts. None (default) leaves behaviour unchanged.
         '''
         self.detector_type = detector_type
-        
+
         if detector_type == 'isolation':
             self.detector = IsolationForestDetector()
         elif detector_type == 'statistical':
@@ -268,8 +275,10 @@ class StreamingPipeline:
             self.detector = LSTMAutoencoder()
         else:
             self.detector = EnsembleDetector()
-            
+
+        self.drift_detector = drift_detector
         self.anomalies = []
+        self.drift_events = []
         self.all_scores = []
         
     def train(self, training_data: np.ndarray):
@@ -310,26 +319,48 @@ class StreamingPipeline:
                 score = self.detector.get_score(value)
                 details = {'score': score}
                 
+            # Concept-drift layer: a 'drift_alert' answers "has the baseline
+            # moved?", which is distinct from the point-anomaly 'is_anomaly'
+            # ("is this single value weird?"). Both can fire on the same point.
+            drift_alert = False
+            drift_detail = None
+            if self.drift_detector is not None:
+                event = self.drift_detector.update(value)
+                if event is not None:
+                    drift_alert = True
+                    drift_detail = event.to_dict()
+                    self.drift_events.append({
+                        'index': i,
+                        'timestamp': timestamp,
+                        'value': value,
+                        'drift': drift_detail
+                    })
+
             result = {
                 'index': i,
                 'timestamp': timestamp,
                 'value': value,
                 'is_anomaly': is_anomaly,
                 'score': score,
-                'details': details
+                'details': details,
+                'drift_alert': drift_alert,
+                'drift': drift_detail
             }
-            
+
             results.append(result)
             self.all_scores.append(score)
-            
+
             if is_anomaly:
                 self.anomalies.append(result)
-                
+
         print(f'  ✅ Detected {len(self.anomalies)} anomalies ({len(self.anomalies)/len(data_stream)*100:.1f}%)')
-        
+        if self.drift_detector is not None:
+            print(f'  ⚠️  Detected {len(self.drift_events)} concept-drift event(s)')
+
         return {
             'results': results,
             'anomalies': self.anomalies,
+            'drift_events': self.drift_events,
             'stats': self._calculate_stats(results)
         }
         

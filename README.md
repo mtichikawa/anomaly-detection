@@ -10,6 +10,7 @@ Production-ready streaming anomaly detection with multiple ML algorithms and ens
   - LSTM Autoencoder (unsupervised)
   - LightGBM gradient-boosted trees (**supervised**, added Apr 2026)
   - Ensemble Voting
+  - Concept-drift layer: Page-Hinkley + Kolmogorov-Smirnov (added Jun 2026)
 
 - **Real-Time Processing**
   - Streaming data pipeline
@@ -68,6 +69,44 @@ These numbers are higher than what a real production deployment would see — sy
 
 The ensemble loads the LightGBM detector only if `models/lightgbm_anomaly.pkl` exists. If the model file is missing or LightGBM isn't installed, the ensemble silently falls back to the four unsupervised detectors. No code path crashes. To regenerate the model: `python scripts/train_lightgbm.py`.
 
+## Concept drift
+
+The point-anomaly detectors answer "is this single value weird relative to the baseline?" But the baseline itself can move. A z-score detector calibrated on summer weekday traffic is miscalibrated for a holiday weekend; a model trained on pre-launch behavior is wrong about post-launch behavior. That slow change in the underlying distribution is **concept drift**, and when it happens the detectors silently start either over-firing or under-firing. Detecting drift is a separate problem from detecting anomalies, and it needs its own layer.
+
+The Jun 2026 upgrade adds an optional `DriftDetector` (`src/detectors/drift_detector.py`) that the `StreamingPipeline` runs alongside the ensemble. When it trips, the pipeline emits a `drift_alert` event kept distinct from a point-anomaly alert (separate `drift_events` list, separate `drift_alert` flag on each record). It's a univariate layer — one detector per stream.
+
+### Two complementary methods
+
+| Method | Catches | How it works |
+|---|---|---|
+| `page_hinkley` | mean shift (gradual or step) | Cumulative-sum test. Tracks the running deviation of each value from the stream mean (standardized by the running std, so the threshold is scale-free) and fires when the accumulated deviation crosses `threshold`. Streaming-native, low memory. |
+| `ks` | distribution shape change | Two-sample Kolmogorov-Smirnov test (`scipy.stats.ks_2samp`) comparing a reference window of older values against a recent window of newer ones. Fires when the p-value drops below `threshold`. Catches variance changes and bimodality that a mean-shift test misses. |
+
+**When to use which:** Page-Hinkley for "did the average move?" — it's cheap and reacts fast to a shift in level. KS for "did the shape of the distribution change?" — slightly more expensive, but it sees changes that leave the mean untouched (e.g. the spread doubling). Use both for full coverage of univariate drift.
+
+After a drift event fires, the detector re-baselines so you get one clean alert per drift instead of an alarm on every subsequent point.
+
+```python
+from src.detectors.pipeline import StreamingPipeline
+from src.detectors.drift_detector import DriftDetector
+
+drift = DriftDetector(method='page_hinkley', reference_window_size=200, threshold=12.0)
+pipeline = StreamingPipeline(detector_type='ensemble', drift_detector=drift)
+pipeline.train(training_data)
+
+results = pipeline.process_stream(stream)
+for ev in pipeline.drift_events:
+    print(ev['index'], ev['drift']['detail'])
+```
+
+Run the end-to-end example (stationary stream that takes a step shift; the ensemble flags the one-off spikes, the drift layer flags the sustained baseline move):
+
+```bash
+python examples/drift_demo.py
+```
+
+**Follow-ups (not in scope for this layer):** automatic retraining of the point-anomaly detectors when drift fires; multivariate drift detection (e.g. MMD — Maximum Mean Discrepancy — over multiple streams jointly); drift visualization on the Dockerized REST API dashboard.
+
 ## Quick Start
 
 ```bash
@@ -125,6 +164,8 @@ The `/detect` endpoint returns the ensemble vote (anomaly or normal), individual
 - `src/detectors/pipeline.py` (500+ lines) - Detectors + EnsembleDetector + StreamingPipeline
 - `src/detectors/feature_engineering.py` - Rolling-window features for the supervised detector
 - `src/detectors/lightgbm_detector.py` - LightGBM detector with graceful-degradation loading
+- `src/detectors/drift_detector.py` - Concept-drift detector (Page-Hinkley + KS)
+- `examples/drift_demo.py` - Concept-drift demo (stationary stream + step shift)
 - `scripts/train_lightgbm.py` - Trains the supervised model + permutation importance
 - `models/lightgbm_anomaly.pkl` - Serialized trained model (regenerable)
 - `models/feature_importance.json` - Permutation importance results
