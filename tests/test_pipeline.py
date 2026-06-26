@@ -5,12 +5,13 @@ can be instantiated, trained, and run without errors.
 '''
 
 import json
+from typing import Any
+
 import numpy as np
 import pytest
 from pathlib import Path
 
 from detectors.pipeline import (
-from typing import Any
     IsolationForestDetector,
     StatisticalDetector,
     LSTMAutoencoder,
