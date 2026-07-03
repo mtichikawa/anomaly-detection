@@ -125,7 +125,7 @@ def test_isolation_forest_fit_marks_trained(normal_data: Any):
     assert det.trained is True
 
 
-def test_isolation_forest_clear_outlier_detected(normal_data):
+def test_isolation_forest_clear_outlier_detected(normal_data: Any):
     det = IsolationForestDetector(contamination=0.05)
     det.fit(normal_data)
     # Normal values should not be flagged, extreme outlier should be
