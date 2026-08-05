@@ -1,3 +1,5 @@
+"""Health utilities."""
+
 from pathlib import Path
 import sys
 
