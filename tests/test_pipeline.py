@@ -133,7 +133,7 @@ def test_isolation_forest_clear_outlier_detected(normal_data: Any):
     assert det.predict(normal_data.mean() + 200)
 
 
-def test_isolation_forest_score_range(normal_data):
+def test_isolation_forest_score_range(normal_data: Any):
     det = IsolationForestDetector()
     det.fit(normal_data)
     for val in [90.0, 100.0, 110.0, 300.0, -100.0]:
